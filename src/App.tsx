@@ -33,6 +33,11 @@ export interface Bill {
   createdAt: string;
 }
 
+// NOTE: Since your existing item data is inside the "bill" document, 
+// we will assume a constant document ID for the "bill" document here for simplicity.
+// Replace 'YOUR_BILL_DOC_ID' with the actual document ID from your screenshot (ETIYYg40T...).
+const BILL_DOC_ID = 'ETIYYg40TplZbZ2ZmsS';
+
 function App() {
   const [activeTab, setActiveTab] = useState<'items' | 'billing'>('items');
   const [items, setItems] = useState<ItemVariant[]>([]);
@@ -43,7 +48,8 @@ function App() {
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const itemsCollection = collection(db, "items");
+        // Fetching items from the subcollection path: 'bill/BILL_DOC_ID/items'
+        const itemsCollection = collection(db, "bill", BILL_DOC_ID, "items");
         const itemSnapshot = await getDocs(itemsCollection);
         const itemsList = itemSnapshot.docs.map(doc => ({
           ...doc.data(),
@@ -116,7 +122,9 @@ function App() {
     };
     
     try {
-      await addDoc(collection(db, "invoices"), bill);
+      // Saving invoice to the subcollection path: 'bill/BILL_DOC_ID/invoices'
+      const invoicesCollection = collection(db, "bill", BILL_DOC_ID, "invoices");
+      await addDoc(invoicesCollection, bill);
       console.log("Invoice successfully saved!");
     } catch (e) {
       console.error("Error adding document: ", e);
