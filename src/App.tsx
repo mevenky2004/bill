@@ -3,7 +3,7 @@ import { Package, Receipt, Plus, Search, Printer, CreditCard, Banknote, LogOut }
 import ItemManager from './components/ItemManager';
 import BillingInterface from './components/BillingInterface';
 import Invoice from './components/Invoice';
-import Login from './components/Login';
+import Login from './components/Login.tsx'; // Ensure the .tsx extension is included
 
 export interface ItemVariant {
   id: string;
