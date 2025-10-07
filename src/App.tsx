@@ -33,10 +33,9 @@ export interface Bill {
   createdAt: string;
 }
 
-// NOTE: Since your existing item data is inside the "bill" document, 
-// we will assume a constant document ID for the "bill" document here for simplicity.
-// Replace 'YOUR_BILL_DOC_ID' with the actual document ID from your screenshot (ETIYYg40T...).
-const BILL_DOC_ID = 'ETIYYg40TplZbZ2ZmsS';
+// *** UPDATED BILL_DOC_ID ***
+// This is the new ID from your screenshot: Z36OORYNSEd4KiFrn2
+const BILL_DOC_ID = 'Z36OORYNSEd4KiFrn2';
 
 function App() {
   const [activeTab, setActiveTab] = useState<'items' | 'billing'>('items');
@@ -125,7 +124,7 @@ function App() {
       // Saving invoice to the subcollection path: 'bill/BILL_DOC_ID/invoices'
       const invoicesCollection = collection(db, "bill", BILL_DOC_ID, "invoices");
       await addDoc(invoicesCollection, bill);
-      console.log("Invoice successfully saved!");
+      console.log("Invoice successfully saved to Firestore!");
     } catch (e) {
       console.error("Error adding document: ", e);
     }
@@ -161,7 +160,7 @@ function App() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <Receipt className="h-8 w-8 text-blue-600 mr-3" />
-              <h1 className="text-2xl font-bold text-gray-900">Billing System</h1>
+              <h1 className="text-2xl font-bold text-gray-900}>Billing System</h1>
             </div>
             
             <div className="flex items-center space-x-4">
