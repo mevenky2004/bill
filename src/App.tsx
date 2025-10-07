@@ -94,8 +94,8 @@ function App() {
       return;
     }
     
-    const updatedBill = currentBill.map(item => 
-      item.id === itemId 
+    const updatedBill = currentBill.map(item =>
+      item.id === itemId
         ? { ...item, quantity: newQuantity, total: item.price * newQuantity }
         : item
     );
