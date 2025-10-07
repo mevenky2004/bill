@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Receipt, Plus, Search, Printer, CreditCard, Banknote, LogOut } from 'lucide-react';
-import ItemManager from './components/ItemManager';
-import BillingInterface from './components/BillingInterface';
-import Invoice from './components/Invoice';
-import Login from './components/Login.tsx'; // Ensure the .tsx extension is included
+import ItemManager from './components/ItemManager.tsx';
+import BillingInterface from './components/BillingInterface.tsx';
+import Invoice from './components/Invoice.tsx';
+import Login from './components/Login.tsx';
 
 export interface ItemVariant {
   id: string;
