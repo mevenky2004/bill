@@ -116,7 +116,7 @@ function App() {
     };
     
     try {
-      await addDoc(collection(db, "bill"), bill);
+      await addDoc(collection(db, "invoices"), bill);
       console.log("Invoice successfully saved!");
     } catch (e) {
       console.error("Error adding document: ", e);
