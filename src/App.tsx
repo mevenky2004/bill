@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Receipt, Plus, LogOut } from 'lucide-react';
+import { Package, Receipt, Plus, LogOut, Loader2 } from 'lucide-react'; // Added Loader2 icon
 import ItemManager from './components/ItemManager.tsx';
 import BillingInterface from './components/BillingInterface.tsx';
 import Invoice from './components/Invoice.tsx';
@@ -33,8 +33,7 @@ export interface Bill {
   createdAt: string;
 }
 
-// *** UPDATED BILL_DOC_ID ***
-// This is the new ID from your screenshot: Z36OORYNSEd4KiFrn2
+// This ID is set to the new parent document ID from your screenshot.
 const BILL_DOC_ID = 'Z36OORYNSEd4KiFrn2';
 
 function App() {
@@ -43,24 +42,30 @@ function App() {
   const [currentBill, setCurrentBill] = useState<BillItem[]>([]);
   const [completedBill, setCompletedBill] = useState<Bill | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // NEW Loading state
 
   useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        // Fetching items from the subcollection path: 'bill/BILL_DOC_ID/items'
-        const itemsCollection = collection(db, "bill", BILL_DOC_ID, "items");
-        const itemSnapshot = await getDocs(itemsCollection);
-        const itemsList = itemSnapshot.docs.map(doc => ({
-          ...doc.data(),
-          id: doc.id
-        })) as ItemVariant[];
-        setItems(itemsList);
-      } catch (e) {
-        console.error("Error fetching documents: ", e);
-      }
-    };
     if (isLoggedIn) {
+      const fetchItems = async () => {
+        setIsLoading(true); // Start loading
+        try {
+          // Fetching items from the subcollection path: 'bill/BILL_DOC_ID/items'
+          const itemsCollection = collection(db, "bill", BILL_DOC_ID, "items");
+          const itemSnapshot = await getDocs(itemsCollection);
+          const itemsList = itemSnapshot.docs.map(doc => ({
+            ...doc.data(),
+            id: doc.id
+          })) as ItemVariant[];
+          setItems(itemsList);
+        } catch (e) {
+          console.error("Error fetching documents: ", e);
+        } finally {
+          setIsLoading(false); // Stop loading regardless of success or failure
+        }
+      };
       fetchItems();
+    } else {
+      setItems([]); // Clear items if logged out
     }
   }, [isLoggedIn]);
 
@@ -160,7 +165,7 @@ function App() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <Receipt className="h-8 w-8 text-blue-600 mr-3" />
-              <h1 className="text-2xl font-bold text-gray-900}>Billing System</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Billing System</h1>
             </div>
             
             <div className="flex items-center space-x-4">
@@ -222,7 +227,12 @@ function App() {
           </div>
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {activeTab === 'items' ? (
+            {isLoading ? (
+              <div className="flex items-center justify-center h-40 bg-white rounded-lg shadow-md">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-500 mr-3" />
+                <span className="text-lg font-medium text-gray-700">Loading Items...</span>
+              </div>
+            ) : activeTab === 'items' ? (
               <ItemManager items={items} setItems={setItems} />
             ) : (
               <BillingInterface
