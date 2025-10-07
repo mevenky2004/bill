@@ -131,14 +131,12 @@ function App() {
     setCompletedBill(null);
   };
 
-  // Conditionally render the login page or the app
   if (!isLoggedIn) {
     return <Login onLogin={setIsLoggedIn} />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <div className="bg-white shadow-sm border-b print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -171,7 +169,6 @@ function App() {
 
       {!completedBill ? (
         <>
-          {/* Tab Navigation */}
           <div className="bg-white shadow-sm print:hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex space-x-8">
@@ -206,7 +203,6 @@ function App() {
             </div>
           </div>
 
-          {/* Main Content */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {activeTab === 'items' ? (
               <ItemManager items={items} onSaveItems={saveItems} />
