@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Receipt, Plus, LogOut, Loader2 } from 'lucide-react'; // Added Loader2 icon
+import { Package, Receipt, Plus, LogOut } from 'lucide-react';
 import ItemManager from './components/ItemManager.tsx';
 import BillingInterface from './components/BillingInterface.tsx';
 import Invoice from './components/Invoice.tsx';
@@ -33,39 +33,29 @@ export interface Bill {
   createdAt: string;
 }
 
-// This ID is set to the new parent document ID from your screenshot.
-const BILL_DOC_ID = 'Z36OORYNSEd4KiFrn2';
-
 function App() {
   const [activeTab, setActiveTab] = useState<'items' | 'billing'>('items');
   const [items, setItems] = useState<ItemVariant[]>([]);
   const [currentBill, setCurrentBill] = useState<BillItem[]>([]);
   const [completedBill, setCompletedBill] = useState<Bill | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // NEW Loading state
 
   useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const itemsCollection = collection(db, "items");
+        const itemSnapshot = await getDocs(itemsCollection);
+        const itemsList = itemSnapshot.docs.map(doc => ({
+          ...doc.data(),
+          id: doc.id
+        })) as ItemVariant[];
+        setItems(itemsList);
+      } catch (e) {
+        console.error("Error fetching documents: ", e);
+      }
+    };
     if (isLoggedIn) {
-      const fetchItems = async () => {
-        setIsLoading(true); // Start loading
-        try {
-          // Fetching items from the subcollection path: 'bill/BILL_DOC_ID/items'
-          const itemsCollection = collection(db, "bill", BILL_DOC_ID, "items");
-          const itemSnapshot = await getDocs(itemsCollection);
-          const itemsList = itemSnapshot.docs.map(doc => ({
-            ...doc.data(),
-            id: doc.id
-          })) as ItemVariant[];
-          setItems(itemsList);
-        } catch (e) {
-          console.error("Error fetching documents: ", e);
-        } finally {
-          setIsLoading(false); // Stop loading regardless of success or failure
-        }
-      };
       fetchItems();
-    } else {
-      setItems([]); // Clear items if logged out
     }
   }, [isLoggedIn]);
 
@@ -126,10 +116,8 @@ function App() {
     };
     
     try {
-      // Saving invoice to the subcollection path: 'bill/BILL_DOC_ID/invoices'
-      const invoicesCollection = collection(db, "bill", BILL_DOC_ID, "invoices");
-      await addDoc(invoicesCollection, bill);
-      console.log("Invoice successfully saved to Firestore!");
+      await addDoc(collection(db, "invoices"), bill);
+      console.log("Invoice successfully saved!");
     } catch (e) {
       console.error("Error adding document: ", e);
     }
@@ -227,12 +215,7 @@ function App() {
           </div>
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {isLoading ? (
-              <div className="flex items-center justify-center h-40 bg-white rounded-lg shadow-md">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-500 mr-3" />
-                <span className="text-lg font-medium text-gray-700">Loading Items...</span>
-              </div>
-            ) : activeTab === 'items' ? (
+            {activeTab === 'items' ? (
               <ItemManager items={items} setItems={setItems} />
             ) : (
               <BillingInterface

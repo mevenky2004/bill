@@ -66,17 +66,13 @@ const ItemManager: React.FC<Props> = ({ items, setItems }) => {
       alert('Please enter weight for weighted items');
       return;
     }
-    
-    // Prepare the data to be sent to Firestore
-    const itemData: any = {
+
+    const itemData = {
       name: formData.name.trim(),
+      weight: formData.isWeightless ? undefined : parseFloat(formData.weight),
       weightUnit: formData.weightUnit,
       price: parseFloat(formData.price)
     };
-
-    if (!formData.isWeightless) {
-      itemData.weight = parseFloat(formData.weight);
-    }
 
     try {
       if (editingItem) {
