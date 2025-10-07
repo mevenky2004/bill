@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Plus, CreditCard as Edit, Trash2, Save, X, Package } from 'lucide-react';
 import { ItemVariant } from '../App';
+import { collection, getDocs, addDoc, doc, deleteDoc, updateDoc } from "firebase/firestore";
+import { db } from "../firebase.js";
 
 interface Props {
   items: ItemVariant[];
-  onSaveItems: (items: ItemVariant[]) => void;
+  setItems: (items: ItemVariant[]) => void;
 }
 
 interface ItemForm {
@@ -15,7 +17,7 @@ interface ItemForm {
   isWeightless: boolean;
 }
 
-const ItemManager: React.FC<Props> = ({ items, onSaveItems }) => {
+const ItemManager: React.FC<Props> = ({ items, setItems }) => {
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [formData, setFormData] = useState<ItemForm>({
@@ -38,7 +40,21 @@ const ItemManager: React.FC<Props> = ({ items, onSaveItems }) => {
     setEditingItem(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const refreshItems = async () => {
+    try {
+      const itemsCollection = collection(db, "items");
+      const itemSnapshot = await getDocs(itemsCollection);
+      const itemsList = itemSnapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id
+      })) as ItemVariant[];
+      setItems(itemsList);
+    } catch (e) {
+      console.error("Error refreshing documents: ", e);
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.price) {
@@ -50,24 +66,30 @@ const ItemManager: React.FC<Props> = ({ items, onSaveItems }) => {
       alert('Please enter weight for weighted items');
       return;
     }
-
-    const itemData: ItemVariant = {
-      id: editingItem || Date.now().toString(),
+    
+    // Prepare the data to be sent to Firestore
+    const itemData: any = {
       name: formData.name.trim(),
-      weight: formData.isWeightless ? undefined : parseFloat(formData.weight),
       weightUnit: formData.weightUnit,
       price: parseFloat(formData.price)
     };
 
-    let newItems;
-    if (editingItem) {
-      newItems = items.map(item => item.id === editingItem ? itemData : item);
-    } else {
-      newItems = [...items, itemData];
+    if (!formData.isWeightless) {
+      itemData.weight = parseFloat(formData.weight);
     }
 
-    onSaveItems(newItems);
-    resetForm();
+    try {
+      if (editingItem) {
+        await updateDoc(doc(db, "items", editingItem), itemData);
+      } else {
+        await addDoc(collection(db, "items"), itemData);
+      }
+      await refreshItems();
+      resetForm();
+    } catch (error) {
+      console.error("Error writing document: ", error);
+      alert("Error saving item. Please try again.");
+    }
   };
 
   const handleEdit = (item: ItemVariant) => {
@@ -82,14 +104,18 @@ const ItemManager: React.FC<Props> = ({ items, onSaveItems }) => {
     setShowForm(true);
   };
 
-  const handleDelete = (itemId: string) => {
+  const handleDelete = async (itemId: string) => {
     if (confirm('Are you sure you want to delete this item?')) {
-      const newItems = items.filter(item => item.id !== itemId);
-      onSaveItems(newItems);
+      try {
+        await deleteDoc(doc(db, "items", itemId));
+        await refreshItems();
+      } catch (error) {
+        console.error("Error deleting document: ", error);
+        alert("Error deleting item. Please try again.");
+      }
     }
   };
 
-  // Group items by name for better display
   const groupedItems = items.reduce((groups, item) => {
     const key = item.name.toLowerCase();
     if (!groups[key]) {
@@ -112,7 +138,6 @@ const ItemManager: React.FC<Props> = ({ items, onSaveItems }) => {
         </button>
       </div>
 
-      {/* Add/Edit Form */}
       {showForm && (
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex justify-between items-center mb-4">
@@ -222,7 +247,6 @@ const ItemManager: React.FC<Props> = ({ items, onSaveItems }) => {
         </div>
       )}
 
-      {/* Items List */}
       <div className="space-y-4">
         {Object.entries(groupedItems).map(([itemName, variants]) => (
           <div key={itemName} className="bg-white rounded-lg shadow-md p-6">

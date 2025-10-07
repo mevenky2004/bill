@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Receipt, Plus, Search, Printer, CreditCard, Banknote, LogOut } from 'lucide-react';
+import { Package, Receipt, Plus, LogOut } from 'lucide-react';
 import ItemManager from './components/ItemManager.tsx';
 import BillingInterface from './components/BillingInterface.tsx';
 import Invoice from './components/Invoice.tsx';
 import Login from './components/Login.tsx';
+import { collection, getDocs, addDoc } from "firebase/firestore";
+import { db } from "./firebase.js";
 
 export interface ItemVariant {
   id: string;
@@ -39,19 +41,23 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // Only load items if logged in
-    if (isLoggedIn) {
-      const savedItems = localStorage.getItem('billingItems');
-      if (savedItems) {
-        setItems(JSON.parse(savedItems));
+    const fetchItems = async () => {
+      try {
+        const itemsCollection = collection(db, "items");
+        const itemSnapshot = await getDocs(itemsCollection);
+        const itemsList = itemSnapshot.docs.map(doc => ({
+          ...doc.data(),
+          id: doc.id
+        })) as ItemVariant[];
+        setItems(itemsList);
+      } catch (e) {
+        console.error("Error fetching documents: ", e);
       }
+    };
+    if (isLoggedIn) {
+      fetchItems();
     }
   }, [isLoggedIn]);
-
-  const saveItems = (newItems: ItemVariant[]) => {
-    setItems(newItems);
-    localStorage.setItem('billingItems', JSON.stringify(newItems));
-  };
 
   const handleAddToBill = (item: ItemVariant, quantity: number) => {
     const existingItemIndex = currentBill.findIndex(billItem => billItem.id === item.id);
@@ -100,7 +106,7 @@ function App() {
     return currentBill.reduce((sum, item) => sum + item.total, 0);
   };
 
-  const handleProceedToInvoice = () => {
+  const handleProceedToInvoice = async () => {
     const bill: Bill = {
       id: Date.now().toString(),
       items: currentBill,
@@ -109,10 +115,16 @@ function App() {
       createdAt: new Date().toISOString()
     };
     
+    try {
+      await addDoc(collection(db, "invoices"), bill);
+      console.log("Invoice successfully saved!");
+    } catch (e) {
+      console.error("Error adding document: ", e);
+    }
+
     setCompletedBill(bill);
     setCurrentBill([]);
     
-    // Auto-print after a short delay
     setTimeout(() => {
       window.print();
     }, 500);
@@ -125,7 +137,6 @@ function App() {
 
   const handleLogout = () => {
     setIsLoggedIn(false);
-    // Clear any bill or item data if needed upon logout
     setItems([]);
     setCurrentBill([]);
     setCompletedBill(null);
@@ -205,7 +216,7 @@ function App() {
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {activeTab === 'items' ? (
-              <ItemManager items={items} onSaveItems={saveItems} />
+              <ItemManager items={items} setItems={setItems} />
             ) : (
               <BillingInterface
                 items={items}
