@@ -1,10 +1,8 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore"; // ✅ Firestore import
+import { getFirestore } from "firebase/firestore";
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAJzfaux4rtjqUmNS0olW5J2vHh1RV4MO8",
+  apiKey: "AIzaSyAJzFaux4rtjQUmnN5oOLW5J2vVh1RV4MOB",
   authDomain: "venky-bill.firebaseapp.com",
   projectId: "venky-bill",
   storageBucket: "venky-bill.firebasestorage.app",
@@ -13,8 +11,5 @@ const firebaseConfig = {
   measurementId: "G-Q1TXHW24KH"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-// ✅ Initialize Firestore database
 export const db = getFirestore(app);
