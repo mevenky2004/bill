@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Receipt, Plus, Search, Printer, CreditCard, Banknote } from 'lucide-react';
+import { Package, Receipt, Plus, Search, Printer, CreditCard, Banknote, LogOut } from 'lucide-react';
 import ItemManager from './components/ItemManager';
 import BillingInterface from './components/BillingInterface';
 import Invoice from './components/Invoice';
-import PaymentModal from './components/PaymentModal';
+import Login from './components/Login';
 
 export interface ItemVariant {
   id: string;
@@ -36,13 +36,17 @@ function App() {
   const [items, setItems] = useState<ItemVariant[]>([]);
   const [currentBill, setCurrentBill] = useState<BillItem[]>([]);
   const [completedBill, setCompletedBill] = useState<Bill | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    const savedItems = localStorage.getItem('billingItems');
-    if (savedItems) {
-      setItems(JSON.parse(savedItems));
+    // Only load items if logged in
+    if (isLoggedIn) {
+      const savedItems = localStorage.getItem('billingItems');
+      if (savedItems) {
+        setItems(JSON.parse(savedItems));
+      }
     }
-  }, []);
+  }, [isLoggedIn]);
 
   const saveItems = (newItems: ItemVariant[]) => {
     setItems(newItems);
@@ -119,6 +123,19 @@ function App() {
     setCurrentBill([]);
   };
 
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    // Clear any bill or item data if needed upon logout
+    setItems([]);
+    setCurrentBill([]);
+    setCompletedBill(null);
+  };
+
+  // Conditionally render the login page or the app
+  if (!isLoggedIn) {
+    return <Login onLogin={setIsLoggedIn} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -130,15 +147,24 @@ function App() {
               <h1 className="text-2xl font-bold text-gray-900">Billing System</h1>
             </div>
             
-            {completedBill && (
+            <div className="flex items-center space-x-4">
+              {completedBill && (
+                <button
+                  onClick={startNewBill}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                  New Bill
+                </button>
+              )}
               <button
-                onClick={startNewBill}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                onClick={handleLogout}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
               >
-                <Plus className="h-4 w-4" />
-                New Bill
+                <LogOut className="h-4 w-4" />
+                Logout
               </button>
-            )}
+            </div>
           </div>
         </div>
       </div>
