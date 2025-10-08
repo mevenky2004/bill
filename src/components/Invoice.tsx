@@ -26,7 +26,10 @@ const Invoice: React.FC<Props> = ({ bill }) => {
 
       {/* Invoice Content */}
       <div className="max-w-2xl mx-auto bg-white p-8 print:p-0 print:max-w-none">
+        
         <div className="text-center mb-8">
+          {/* REMOVED: The manually added "Billing System" paragraph is gone */}
+          
           <h1 className="text-3xl font-bold text-gray-900 mb-2">INVOICE</h1>
           <div className="text-sm text-gray-600">
             Invoice #: {bill.id}
