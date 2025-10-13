@@ -75,15 +75,20 @@ const ItemManager: React.FC<Props> = ({ items, onItemsUpdate }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // --- VALIDATION UPDATED: Only Name and Rate are required ---
     if (!formData.name || !formData.price) {
       alert('Please fill all required fields: Name and Rate.');
+      return;
+    }
+    if (!formData.isWeightless && !formData.weight) {
+      alert('Please enter a weight for weighted items.');
       return;
     }
 
     const itemData: Omit<ItemVariant, 'id'> = {
       name: formData.name.trim(),
       price: parseFloat(formData.price), // Saving RATE as price
-      mrp: parseFloat(formData.mrp) || undefined, // MRP is optional
+      mrp: parseFloat(formData.mrp) || undefined, // MRP is optional, will be undefined if empty
       hsnCode: formData.hsnCode.trim(),
       gstRate: parseFloat(formData.gstRate) || 0,
       weightUnit: formData.isWeightless ? 'pieces' : formData.weightUnit,
