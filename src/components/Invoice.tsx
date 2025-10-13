@@ -24,8 +24,8 @@ const formatAddress = (addr: Address | undefined): string => {
 const Invoice: React.FC<Props> = ({ bill }) => {
 
   const shopAddress = {
-    name: "KS marketing",
-    address: "suggappa layout\nbalaagi recedency\nsecond cross\nyalahanka bengalore",
+    name: "KS MARKETINS",
+    address: "Suggappa Layout\nBalagi Recedency\nSecond Cross\nYalahanka Bengalore",
     gstin: "",
   };
   
