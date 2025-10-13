@@ -29,6 +29,33 @@ const initialReceiverState: NewReceiver = {
   shippingAddress: { ...initialAddressState }
 };
 
+// --- STYLES AND HELPER COMPONENT MOVED OUTSIDE ---
+const inputStyle = "w-full mt-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm";
+const labelStyle = "text-sm font-medium text-gray-700";
+
+interface AddressFieldsProps {
+  type: 'billingAddress' | 'shippingAddress';
+  disabled?: boolean;
+  formData: NewReceiver;
+  handleAddressChange: (type: 'billingAddress' | 'shippingAddress', field: keyof Address, value: string) => void;
+}
+
+const AddressFields: React.FC<AddressFieldsProps> = ({ type, disabled, formData, handleAddressChange }) => (
+  <div className="space-y-4">
+    <div><label className={labelStyle}>Attention</label><input type="text" value={formData[type]?.attention || ''} onChange={e => handleAddressChange(type, 'attention', e.target.value)} className={inputStyle} disabled={disabled} /></div>
+    <div className="grid grid-cols-2 gap-4">
+      <div><label className={labelStyle}>City</label><input type="text" value={formData[type]?.city || ''} onChange={e => handleAddressChange(type, 'city', e.target.value)} className={inputStyle} disabled={disabled} /></div>
+      <div><label className={labelStyle}>State</label><input type="text" value={formData[type]?.state || ''} onChange={e => handleAddressChange(type, 'state', e.target.value)} className={inputStyle} disabled={disabled} /></div>
+    </div>
+    <div><label className={labelStyle}>Address</label><textarea value={formData[type]?.addressLine1 || ''} onChange={e => handleAddressChange(type, 'addressLine1', e.target.value)} className={inputStyle} rows={2} placeholder="Street 1" disabled={disabled}></textarea><textarea value={formData[type]?.addressLine2 || ''} onChange={e => handleAddressChange(type, 'addressLine2', e.target.value)} className={`${inputStyle} mt-2`} rows={2} placeholder="Street 2" disabled={disabled}></textarea></div>
+    <div className="grid grid-cols-2 gap-4">
+      <div><label className={labelStyle}>Pin Code</label><input type="text" value={formData[type]?.pinCode || ''} onChange={e => handleAddressChange(type, 'pinCode', e.target.value)} className={inputStyle} disabled={disabled} /></div>
+      <div><label className={labelStyle}>Phone</label><input type="text" value={formData[type]?.phone || ''} onChange={e => handleAddressChange(type, 'phone', e.target.value)} className={inputStyle} disabled={disabled} /></div>
+    </div>
+  </div>
+);
+
+
 const ReceiverManager: React.FC<Props> = ({ receivers, onReceiversUpdate }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -103,30 +130,12 @@ const ReceiverManager: React.FC<Props> = ({ receivers, onReceiversUpdate }) => {
   const handleAddressChange = (type: 'billingAddress' | 'shippingAddress', field: keyof Address, value: string) => {
     setFormData(prev => ({ ...prev, [type]: { ...prev[type], [field]: value } }));
   };
-  
-  const inputStyle = "w-full mt-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm";
-  const labelStyle = "text-sm font-medium text-gray-700";
-
-  const AddressFields: React.FC<{ type: 'billingAddress' | 'shippingAddress', disabled?: boolean }> = ({ type, disabled }) => (
-    <div className="space-y-4">
-      <div><label className={labelStyle}>Attention</label><input type="text" value={formData[type]?.attention || ''} onChange={e => handleAddressChange(type, 'attention', e.target.value)} className={inputStyle} disabled={disabled} /></div>
-      <div className="grid grid-cols-2 gap-4">
-        <div><label className={labelStyle}>City</label><input type="text" value={formData[type]?.city || ''} onChange={e => handleAddressChange(type, 'city', e.target.value)} className={inputStyle} disabled={disabled} /></div>
-        <div><label className={labelStyle}>State</label><input type="text" value={formData[type]?.state || ''} onChange={e => handleAddressChange(type, 'state', e.target.value)} className={inputStyle} disabled={disabled} /></div>
-      </div>
-      <div><label className={labelStyle}>Address</label><textarea value={formData[type]?.addressLine1 || ''} onChange={e => handleAddressChange(type, 'addressLine1', e.target.value)} className={inputStyle} rows={2} placeholder="Street 1" disabled={disabled}></textarea><textarea value={formData[type]?.addressLine2 || ''} onChange={e => handleAddressChange(type, 'addressLine2', e.target.value)} className={`${inputStyle} mt-2`} rows={2} placeholder="Street 2" disabled={disabled}></textarea></div>
-      <div className="grid grid-cols-2 gap-4">
-        <div><label className={labelStyle}>Pin Code</label><input type="text" value={formData[type]?.pinCode || ''} onChange={e => handleAddressChange(type, 'pinCode', e.target.value)} className={inputStyle} disabled={disabled} /></div>
-        <div><label className={labelStyle}>Phone</label><input type="text" value={formData[type]?.phone || ''} onChange={e => handleAddressChange(type, 'phone', e.target.value)} className={inputStyle} disabled={disabled} /></div>
-      </div>
-    </div>
-  );
 
   return (
     <div className="space-y-6">
       {isFormOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-start p-4 overflow-y-auto">
-          <div ref={formRef} className="bg-white rounded-lg shadow-2xl w-full max-w-2xl my-8">
+          <div ref={formRef} className="bg-white rounded-lg shadow-2xl w-full max-w-4xl my-8">
             <div className="p-6 border-b">
               <div className="flex justify-between items-center">
                 <h3 className="text-xl font-semibold text-gray-800">{editingId ? 'Edit Customer' : 'New Customer'}</h3>
@@ -135,7 +144,6 @@ const ReceiverManager: React.FC<Props> = ({ receivers, onReceiversUpdate }) => {
             </div>
             <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
               
-              {/* --- SYSTEMATIC ONE-BY-ONE FORM LAYOUT --- */}
               <div className="space-y-4">
                 <div>
                   <label className={labelStyle}>Customer Type</label>
@@ -153,35 +161,29 @@ const ReceiverManager: React.FC<Props> = ({ receivers, onReceiversUpdate }) => {
                   </div>
                 </div>
 
-                <div>
-                    <label className={labelStyle}>Company Name</label>
-                    <input type="text" value={formData.companyName} onChange={e => setFormData({ ...formData, companyName: e.target.value })} className={inputStyle} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><label className={labelStyle}>Company Name</label><input type="text" value={formData.companyName} onChange={e => setFormData({ ...formData, companyName: e.target.value })} className={inputStyle} /></div>
+                    <div><label className={labelStyle}>Display Name <span className="text-red-500">*</span></label><input type="text" value={formData.displayName} onChange={e => setFormData({ ...formData, displayName: e.target.value })} className={inputStyle} required /></div>
                 </div>
-                <div>
-                    <label className={labelStyle}>Display Name <span className="text-red-500">*</span></label>
-                    <input type="text" value={formData.displayName} onChange={e => setFormData({ ...formData, displayName: e.target.value })} className={inputStyle} required />
-                </div>
-                <div>
-                  <label className={labelStyle}>Email Address</label>
-                  <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className={inputStyle} />
-                </div>
-                <div>
-                    <label className={labelStyle}>GSTIN</label>
-                    <input type="text" value={formData.gstin} onChange={e => setFormData({ ...formData, gstin: e.target.value })} className={inputStyle} />
-                </div>
-                <div>
-                    <label className={labelStyle}>Phone</label>
-                    <div className="grid grid-cols-2 gap-2 mt-1">
-                      <input type="tel" placeholder="Work Phone" value={formData.workPhone} onChange={e => setFormData({ ...formData, workPhone: e.target.value })} className={inputStyle} />
-                      <input type="tel" placeholder="Mobile" value={formData.mobile} onChange={e => setFormData({ ...formData, mobile: e.target.value })} className={inputStyle} />
+
+                <div><label className={labelStyle}>Email Address</label><input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className={inputStyle} /></div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><label className={labelStyle}>GSTIN</label><input type="text" value={formData.gstin} onChange={e => setFormData({ ...formData, gstin: e.target.value })} className={inputStyle} /></div>
+                    <div>
+                        <label className={labelStyle}>Phone</label>
+                        <div className="grid grid-cols-2 gap-2 mt-1">
+                          <input type="tel" placeholder="Work Phone" value={formData.workPhone} onChange={e => setFormData({ ...formData, workPhone: e.target.value })} className={inputStyle} />
+                          <input type="tel" placeholder="Mobile" value={formData.mobile} onChange={e => setFormData({ ...formData, mobile: e.target.value })} className={inputStyle} />
+                        </div>
                     </div>
                 </div>
               </div>
               
-              <div className="space-y-6 pt-4 border-t">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
                 <div>
                   <h4 className="font-semibold mb-4">Billing Address</h4>
-                  <AddressFields type="billingAddress" />
+                  <AddressFields type="billingAddress" formData={formData} handleAddressChange={handleAddressChange} />
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-4">
@@ -191,7 +193,7 @@ const ReceiverManager: React.FC<Props> = ({ receivers, onReceiversUpdate }) => {
                       <label htmlFor="sameAsBilling" className="text-sm">Same as Billing</label>
                     </div>
                   </div>
-                  {!isShippingSameAsBilling && <AddressFields type="shippingAddress" />}
+                  {!isShippingSameAsBilling && <AddressFields type="shippingAddress" disabled={isShippingSameAsBilling} formData={formData} handleAddressChange={handleAddressChange} />}
                 </div>
               </div>
             </div>
