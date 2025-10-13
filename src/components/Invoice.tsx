@@ -1,95 +1,141 @@
 import React from 'react';
-import { Printer } from 'lucide-react';
-import { Bill } from '../App';
+import { Bill, Address } from '../App';
 
 interface Props {
   bill: Bill;
 }
 
+const formatCurrency = (num: number) => num.toFixed(2);
+
+// Helper function to format the structured address into a string
+const formatAddress = (addr: Address | undefined): string => {
+    if (!addr) return 'N/A';
+    const parts = [
+        addr.attention,
+        addr.addressLine1,
+        addr.addressLine2,
+        `${addr.city || ''} ${addr.state || ''} ${addr.pinCode || ''}`.trim(),
+        addr.countryRegion,
+        addr.phone ? `Ph: ${addr.phone}` : '',
+        addr.faxNumber ? `Fax: ${addr.faxNumber}` : ''
+    ];
+    return parts.filter(part => part).join('\n');
+};
+
+
 const Invoice: React.FC<Props> = ({ bill }) => {
-  const handlePrint = () => {
-    window.print();
+
+  const shopAddress = {
+    name: "KS MARKETING",
+    address: "Suggappa Layout\nBalagi Recedency\nSecond Cross\nYALAHANKA BENGALORE - 560064",
+    gstin: "",
   };
+  
+  // Use the new structured name or the old displayName
+  const receiverName = bill.receiver?.displayName || bill.receiver?.name || 'N/A';
+  const billingAddressText = formatAddress(bill.receiver?.billingAddress);
+  const shippingAddressText = formatAddress(bill.receiver?.shippingAddress);
+
 
   return (
-    <div>
-      {/* Print Button - Hidden during print */}
-      <div className="max-w-2xl mx-auto p-4 print:hidden">
-        <button
-          onClick={handlePrint}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2 mb-6"
-        >
-          <Printer className="h-5 w-5" />
-          Print Invoice
-        </button>
+    <div className="max-w-4xl mx-auto bg-white p-8 border print:border-none print:shadow-none print:p-0 font-sans text-sm">
+      <div className="flex justify-center items-start mb-4">
+          <h1 className="text-2xl font-bold text-center">GST INVOICE</h1>
       </div>
 
-      {/* Invoice Content */}
-      <div className="max-w-2xl mx-auto bg-white p-8 print:p-0 print:max-w-none">
-        
-        <div className="text-center mb-8">
-          {/* REMOVED: The manually added "Billing System" paragraph is gone */}
-          
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">INVOICE</h1>
-          <div className="text-sm text-gray-600">
-            Invoice #: {bill.id}
+      <div className={`grid ${bill.receiver ? 'grid-cols-2' : 'grid-cols-1'} border`}>
+        <div className={`p-2 ${bill.receiver ? 'border-r' : ''}`}>
+          <p className="font-bold text-base">{shopAddress.name}</p>
+          <p className="whitespace-pre-line">{shopAddress.address}</p>
+          <p><span className="font-semibold">GSTIN/UIN:</span> {shopAddress.gstin}</p>
+        </div>
+        {bill.receiver && (
+          <div className="grid grid-cols-2 text-xs">
+            <div className="p-2 border-r"><span className="font-semibold">Invoice No.</span><br />{bill.invoiceNumber}</div>
+            <div className="p-2"><span className="font-semibold">Dated</span><br />{new Date(bill.createdAt).toLocaleDateString('en-GB')}</div>
+            <div className="p-2 border-r border-t"><span className="font-semibold">Buyer's Order No.</span><br/>{bill.buyersOrderNo}</div>
+            <div className="p-2 border-t"><span className="font-semibold">Dispatched Through</span><br/>{bill.dispatchedThrough}</div>
           </div>
-          <div className="text-sm text-gray-600">
-            Date: {new Date(bill.createdAt).toLocaleDateString('en-IN')}
+        )}
+      </div>
+
+      {bill.receiver && (
+        <div className="grid grid-cols-2 border border-t-0">
+          <div className="p-2 border-r">
+            <p className="font-semibold">SHIPPING ADDRESS:</p>
+            <p className="font-bold">{receiverName}</p>
+            <p className="whitespace-pre-line">{shippingAddressText}</p>
+            {bill.receiver.gstin && <p><span className="font-semibold">GSTIN/UIN:</span> {bill.receiver.gstin}</p>}
           </div>
-          <div className="text-sm text-gray-600">
-            Time: {new Date(bill.createdAt).toLocaleTimeString('en-IN')}
+          <div className="p-2">
+            <p className="font-semibold">BILLING ADDRESS:</p>
+            <p className="font-bold">{receiverName}</p>
+            <p className="whitespace-pre-line">{billingAddressText}</p>
+            {bill.receiver.gstin && <p><span className="font-semibold">GSTIN/UIN:</span> {bill.receiver.gstin}</p>}
           </div>
         </div>
+      )}
 
-        {/* Items Table */}
-        <div className="mb-8">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b-2 border-gray-300">
-                <th className="text-left py-2 font-semibold">Item</th>
-                <th className="text-center py-2 font-semibold">Weight</th>
-                <th className="text-right py-2 font-semibold">Price</th>
-                <th className="text-center py-2 font-semibold">Qty</th>
-                <th className="text-right py-2 font-semibold">Total</th>
+      <table className="w-full border-x">
+        <thead className="bg-gray-50">
+          <tr className="border-b">
+            <th className="p-1 border-r font-semibold">Sl</th>
+            <th className="p-1 border-r font-semibold text-left">Description</th>
+            <th className="p-1 border-r font-semibold">HSN</th>
+            <th className="p-1 border-r font-semibold">Qty</th>
+            <th className="p-1 border-r font-semibold text-right">MRP</th>
+            <th className="p-1 border-r font-semibold text-right">Basic Value</th>
+            <th className="p-1 border-r font-semibold" colSpan={2}>CGST</th>
+            <th className="p-1" colSpan={2}>SGST</th>
+          </tr>
+          <tr className="border-b bg-gray-50">
+            <th className="p-1 border-r"></th><th className="p-1 border-r"></th><th className="p-1 border-r"></th><th className="p-1 border-r"></th><th className="p-1 border-r"></th><th className="p-1 border-r"></th>
+            <th className="p-1 border-r font-semibold">Rate</th><th className="p-1 border-r font-semibold text-right">Amt</th>
+            <th className="p-1 border-r font-semibold">Rate</th><th className="p-1 font-semibold text-right">Amt</th>
+          </tr>
+        </thead>
+        <tbody>
+          {bill.items.map((item, index) => {
+            const gstRate = item.gstRate || 0;
+            const baseValue = item.total / (1 + gstRate / 100);
+            const gstAmount = item.total - baseValue;
+            const cgstSgstRate = gstRate / 2;
+            const cgstSgstAmount = gstAmount / 2;
+            return (
+              <tr key={item.id + index} className="border-b">
+                <td className="p-1 border-r text-center">{index + 1}</td>
+                <td className="p-1 border-r">{item.name} {item.weight ? `(${item.weight}${item.weightUnit})` : ''}</td>
+                <td className="p-1 border-r text-center">{item.hsnCode || ''}</td>
+                <td className="p-1 border-r text-center">{item.quantity}</td>
+                <td className="p-1 border-r text-right">₹{formatCurrency(item.price)}</td>
+                <td className="p-1 border-r text-right">₹{formatCurrency(baseValue)}</td>
+                <td className="p-1 border-r text-center">{cgstSgstRate.toFixed(2)}%</td>
+                <td className="p-1 border-r text-right">₹{formatCurrency(cgstSgstAmount)}</td>
+                <td className="p-1 border-r text-center">{cgstSgstRate.toFixed(2)}%</td>
+                <td className="p-1 text-right">₹{formatCurrency(cgstSgstAmount)}</td>
               </tr>
-            </thead>
-            <tbody>
-              {bill.items.map((item, index) => (
-                <tr key={item.id} className="border-b border-gray-200">
-                  <td className="py-3 font-medium">{item.name}</td>
-                  <td className="py-3 text-center">
-                    {item.weight ? `${item.weight} ${item.weightUnit}` : 'Packet/Piece'}
-                  </td>
-                  <td className="py-3 text-right">₹{item.price.toFixed(2)}</td>
-                  <td className="py-3 text-center">{item.quantity}</td>
-                  <td className="py-3 text-right font-medium">₹{item.total.toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            );
+          })}
+        </tbody>
+        <tfoot>
+          <tr className="border-t font-semibold">
+            <td className="p-1 border-r text-right" colSpan={5}>Total</td>
+            <td className="p-1 border-r text-right">₹{formatCurrency(bill.subtotal)}</td>
+            <td className="p-1 border-r"></td>
+            <td className="p-1 border-r text-right">₹{formatCurrency(bill.cgst)}</td>
+            <td className="p-1 border-r"></td>
+            <td className="p-1 text-right">₹{formatCurrency(bill.sgst)}</td>
+          </tr>
+        </tfoot>
+      </table>
 
-        {/* Totals */}
-        <div className="border-t-2 border-gray-300 pt-4">
-          <div className="flex justify-between items-center text-xl font-bold">
-            <span>TOTAL AMOUNT:</span>
-            <span>₹{bill.total.toFixed(2)}</span>
-          </div>
-          
-          <div className="mt-4 text-center">
-            <div className="text-sm text-gray-600">
-              Thank you for your purchase!
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-12 text-center text-sm text-gray-600">
-          <div className="border-t border-gray-200 pt-4">
-            <p className="mb-2">Thank you for your business!</p>
-            <p>Generated on {new Date().toLocaleString('en-IN')}</p>
-          </div>
+      <div className="flex justify-between border border-t-0 p-2">
+        <div><p className="font-bold">Total (in words):</p><p>---</p></div>
+        <div className="text-right">
+          <div className="flex justify-between gap-4"><span>Subtotal:</span><span>₹{formatCurrency(bill.subtotal)}</span></div>
+          <div className="flex justify-between gap-4"><span>CGST:</span><span>₹{formatCurrency(bill.cgst)}</span></div>
+          <div className="flex justify-between gap-4"><span>SGST:</span><span>₹{formatCurrency(bill.sgst)}</span></div>
+          <div className="flex justify-between gap-4 font-bold border-t mt-1 pt-1"><span>GRAND TOTAL:</span><span>₹{formatCurrency(bill.total)}</span></div>
         </div>
       </div>
     </div>
