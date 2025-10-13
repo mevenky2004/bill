@@ -13,8 +13,8 @@ interface ItemForm {
   name: string;
   weight: string;
   weightUnit: string;
-  price: string; // This is now RATE
-  mrp: string;   // This is the new optional MRP field
+  price: string; // This is RATE
+  mrp: string;   // This is the optional MRP field
   isWeightless: boolean;
   hsnCode: string;
   gstRate: string;
@@ -83,7 +83,7 @@ const ItemManager: React.FC<Props> = ({ items, onItemsUpdate }) => {
     const itemData: Omit<ItemVariant, 'id'> = {
       name: formData.name.trim(),
       price: parseFloat(formData.price), // Saving RATE as price
-      mrp: parseFloat(formData.mrp) || undefined,
+      mrp: parseFloat(formData.mrp) || undefined, // MRP is optional
       hsnCode: formData.hsnCode.trim(),
       gstRate: parseFloat(formData.gstRate) || 0,
       weightUnit: formData.isWeightless ? 'pieces' : formData.weightUnit,
@@ -129,7 +129,7 @@ const ItemManager: React.FC<Props> = ({ items, onItemsUpdate }) => {
                 <div className="md:col-span-2"><label className={labelStyle}>Item Name</label><input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={inputStyle} required /></div>
                 
                 <div><label className={labelStyle}>Rate (excl. GST) (₹)</label><input type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className={inputStyle} step="0.01" required/></div>
-                <div><label className={labelStyle}>MRP (₹)</label><input type="number" value={formData.mrp} onChange={e => setFormData({...formData, mrp: e.target.value})} className={inputStyle} step="0.01" /></div>
+                <div><label className={labelStyle}>MRP (Optional) (₹)</label><input type="number" value={formData.mrp} onChange={e => setFormData({...formData, mrp: e.target.value})} className={inputStyle} step="0.01" /></div>
                 <div><label className={labelStyle}>HSN/SAC Code</label><input type="text" value={formData.hsnCode} onChange={(e) => setFormData({ ...formData, hsnCode: e.target.value })} className={inputStyle} /></div>
                 <div><label className={labelStyle}>GST Rate (%)</label><input type="number" value={formData.gstRate} onChange={e => setFormData({...formData, gstRate: e.target.value})} className={inputStyle} step="0.01" /></div>
                 
@@ -164,7 +164,7 @@ const ItemManager: React.FC<Props> = ({ items, onItemsUpdate }) => {
         <div key={itemName} className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 capitalize">{variants[0].name}</h3>
           <div className="overflow-x-auto"><table className="min-w-full text-sm"><thead className="bg-gray-50"><tr className="border-b"><th className="text-left p-2 font-semibold">Variant</th><th className="text-left p-2 font-semibold">Rate</th><th className="text-left p-2 font-semibold">MRP</th><th className="text-left p-2 font-semibold">GST</th><th className="text-right p-2 font-semibold">Actions</th></tr></thead>
-          <tbody>{variants.map((item) => (<tr key={item.id} className="border-b last:border-0"><td className="p-2">{item.weight ? `${item.weight} ${item.weightUnit}` : 'Packet/Piece'}</td><td className="p-2 font-medium">₹{item.price.toFixed(2)}</td><td className="p-2 font-medium">₹{item.mrp ? item.mrp.toFixed(2) : 'N/A'}</td><td className="p-2">{item.gstRate}%</td><td className="p-2 text-right"><div className="flex justify-end space-x-2"><button onClick={() => handleOpenForm(item)} className="text-blue-600 p-1" title="Edit"><Edit className="h-4 w-4" /></button><button onClick={() => handleDelete(item.id)} className="text-red-600 p-1" title="Delete"><Trash2 className="h-4 w-4" /></button></div></td></tr>))}</tbody>
+          <tbody>{variants.map((item) => (<tr key={item.id} className="border-b last:border-0"><td className="p-2">{item.weight ? `${item.weight} ${item.weightUnit}` : 'Packet/Piece'}</td><td className="p-2 font-medium">₹{item.price.toFixed(2)}</td><td className="p-2 font-medium">{item.mrp ? `₹${item.mrp.toFixed(2)}` : 'N/A'}</td><td className="p-2">{item.gstRate}%</td><td className="p-2 text-right"><div className="flex justify-end space-x-2"><button onClick={() => handleOpenForm(item)} className="text-blue-600 p-1" title="Edit"><Edit className="h-4 w-4" /></button><button onClick={() => handleDelete(item.id)} className="text-red-600 p-1" title="Delete"><Trash2 className="h-4 w-4" /></button></div></td></tr>))}</tbody>
           </table></div>
         </div>
       ))}
