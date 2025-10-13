@@ -58,13 +58,13 @@ const Invoice: React.FC<Props> = ({ bill }) => {
       {bill.receiver && (
         <div className="grid grid-cols-2 border border-t-0">
           <div className="p-2 border-r">
-            <p className="font-semibold">Consignee (Ship to):</p>
+            <p className="font-semibold">SHIPPING ADDRESS :</p>
             <p className="font-bold">{receiverName}</p>
             <p className="whitespace-pre-line">{shippingAddressText}</p>
             {bill.receiver.gstin && <p><span className="font-semibold">GSTIN/UIN:</span> {bill.receiver.gstin}</p>}
           </div>
           <div className="p-2">
-            <p className="font-semibold">Buyer (Bill to):</p>
+            <p className="font-semibold">BILLING ADDRESS :</p>
             <p className="font-bold">{receiverName}</p>
             <p className="whitespace-pre-line">{billingAddressText}</p>
             {bill.receiver.gstin && <p><span className="font-semibold">GSTIN/UIN:</span> {bill.receiver.gstin}</p>}
