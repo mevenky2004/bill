@@ -1,5 +1,7 @@
+// src/components/Login.tsx
+
 import React, { useState } from 'react';
-import { User, Lock, LogIn } from 'lucide-react';
+import { User, Lock } from 'lucide-react';
 
 interface Props {
   onLogin: (isLoggedIn: boolean) => void;
@@ -12,6 +14,7 @@ const Login: React.FC<Props> = ({ onLogin }) => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    // Your login credentials remain the same
     if (username === 'samyuktha123' && password === '2013') {
       onLogin(true);
     } else {
@@ -20,63 +23,60 @@ const Login: React.FC<Props> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Sign in</h2>
-          <p className="text-sm text-gray-600 mt-2">
-            Enter your credentials to access the billing system.
-          </p>
+    // Main container with a dark, gradient background
+    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900">
+      
+      {/* "Glass" Login Form Container */}
+      <div className="max-w-sm w-full bg-black/20 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-8">
+        
+        {/* User Icon Placeholder */}
+        <div className="flex justify-center">
+          <div className="h-24 w-24 bg-white/10 rounded-full flex items-center justify-center">
+            <User className="h-12 w-12 text-white/50" />
+          </div>
         </div>
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="sr-only" htmlFor="username">
-              Username
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <User className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Username"
-                required
-              />
-            </div>
+
+        <form onSubmit={handleLogin} className="space-y-6">
+          {/* Username Field */}
+          <div className="relative flex items-center">
+            <User className="absolute left-3 h-5 w-5 text-white/40" />
+            <input
+              id="username"
+              name="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full pl-10 bg-transparent border-0 border-b-2 border-white/20 focus:border-white/60 focus:ring-0 py-2 text-lg text-white placeholder:text-white/40 transition-colors"
+              placeholder="Username"
+              required
+            />
           </div>
-          <div>
-            <label className="sr-only" htmlFor="password">
-              Password
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Password"
-                required
-              />
-            </div>
+
+          {/* Password Field */}
+          <div className="relative flex items-center">
+            <Lock className="absolute left-3 h-5 w-5 text-white/40" />
+            <input
+              id="password"
+              name="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full pl-10 bg-transparent border-0 border-b-2 border-white/20 focus:border-white/60 focus:ring-0 py-2 text-lg text-white placeholder:text-white/40 transition-colors"
+              placeholder="Password"
+              required
+            />
           </div>
-          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+          {error && <p className="text-red-400 text-sm text-center !mt-4">{error}</p>}
+
+          {/* Login Button */}
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 rounded-xl transition-all duration-300 text-lg shadow-lg !mt-10"
           >
-            <LogIn className="h-5 w-5" />
-            Sign in
+            LOGIN
           </button>
+
         </form>
       </div>
     </div>
