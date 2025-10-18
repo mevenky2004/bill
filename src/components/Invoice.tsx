@@ -1,3 +1,5 @@
+// src/components/Invoice.tsx
+
 import React from 'react';
 import { Bill, Address } from '../types';
 
@@ -32,6 +34,9 @@ const Invoice: React.FC<Props> = ({ bill }) => {
   const receiverName = bill.receiver?.displayName || 'N/A';
   const billingAddressText = formatAddress(bill.receiver?.billingAddress);
   const shippingAddressText = formatAddress(bill.receiver?.shippingAddress);
+
+  // --- FIX: Recalculate total based on rounded sub-parts to ensure consistency ---
+  const finalTotal = parseFloat(bill.subtotal.toFixed(2)) + parseFloat(bill.cgst.toFixed(2)) + parseFloat(bill.sgst.toFixed(2));
 
   return (
     <div className="max-w-4xl mx-auto bg-white p-8 border print:border-none print:shadow-none print:p-0 font-sans text-sm">
@@ -100,7 +105,12 @@ const Invoice: React.FC<Props> = ({ bill }) => {
             const gstAmount = basicValue * (gstRate / 100);
             const cgstSgstRate = gstRate / 2;
             const cgstSgstAmount = gstAmount / 2;
-            const total = basicValue + gstAmount;
+            
+            // Calculate line total based on rounded values
+            const lineSubtotal = parseFloat(basicValue.toFixed(2));
+            const lineCgst = parseFloat(cgstSgstAmount.toFixed(2));
+            const lineSgst = parseFloat(cgstSgstAmount.toFixed(2));
+            const total = lineSubtotal + lineCgst + lineSgst;
 
             return (
               <tr key={item.id + index} className="border-b">
@@ -110,7 +120,6 @@ const Invoice: React.FC<Props> = ({ bill }) => {
                 <td className="p-1 border-r text-center">{item.quantity}</td>
                 <td className="p-1 border-r text-right">₹{item.mrp ? formatCurrency(item.mrp) : 'N/A'}</td>
                 <td className="p-1 border-r text-right">₹{formatCurrency(item.price)}</td>
-                {/* Basic Value column and cell removed */}
                 <td className="p-1 border-r text-center">{cgstSgstRate.toFixed(2)}%</td>
                 <td className="p-1 border-r text-right">₹{formatCurrency(cgstSgstAmount)}</td>
                 <td className="p-1 border-r text-center">{cgstSgstRate.toFixed(2)}%</td>
@@ -122,14 +131,13 @@ const Invoice: React.FC<Props> = ({ bill }) => {
         </tbody>
         <tfoot>
           <tr className="border-t font-semibold">
-            {/* Colspan adjusted from 6 to 5 */}
             <td className="p-1 border-r text-right" colSpan={5}>Total</td>
             <td className="p-1 border-r text-right">₹{formatCurrency(bill.subtotal)}</td>
             <td className="p-1 border-r"></td>
             <td className="p-1 border-r text-right">₹{formatCurrency(bill.cgst)}</td>
             <td className="p-1 border-r"></td>
             <td className="p-1 text-right">₹{formatCurrency(bill.sgst)}</td>
-            <td className="p-1 text-right font-bold">₹{formatCurrency(bill.total)}</td>
+            <td className="p-1 text-right font-bold">₹{formatCurrency(finalTotal)}</td>
           </tr>
         </tfoot>
       </table>
@@ -140,7 +148,7 @@ const Invoice: React.FC<Props> = ({ bill }) => {
           <div className="flex justify-between gap-4"><span>Subtotal:</span><span>₹{formatCurrency(bill.subtotal)}</span></div>
           <div className="flex justify-between gap-4"><span>CGST:</span><span>₹{formatCurrency(bill.cgst)}</span></div>
           <div className="flex justify-between gap-4"><span>SGST:</span><span>₹{formatCurrency(bill.sgst)}</span></div>
-          <div className="flex justify-between gap-4 font-bold border-t mt-1 pt-1"><span>GRAND TOTAL:</span><span>₹{formatCurrency(bill.total)}</span></div>
+          <div className="flex justify-between gap-4 font-bold border-t mt-1 pt-1"><span>GRAND TOTAL:</span><span>₹{formatCurrency(finalTotal)}</span></div>
         </div>
       </div>
     </div>

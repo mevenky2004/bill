@@ -1,5 +1,7 @@
+// src/components/ItemManager.tsx
+
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Edit, Trash2, Save, X, Package } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, Package, Calculator } from 'lucide-react';
 import { ItemVariant } from '../types';
 import { collection, addDoc, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase.js";
@@ -28,7 +30,25 @@ const ItemManager: React.FC<Props> = ({ items, onItemsUpdate }) => {
     isWeightless: true, hsnCode: '', gstRate: ''
   });
 
+  // State for the side calculator panel
+  const [calcSellingPrice, setCalcSellingPrice] = useState('');
+  const [calcGst, setCalcGst] = useState('');
+  const [calculatedBasePrice, setCalculatedBasePrice] = useState<string | null>(null);
+
   const formRef = useRef<HTMLDivElement>(null);
+
+  // useEffect to perform calculation for the side panel
+  useEffect(() => {
+    const sp = parseFloat(calcSellingPrice);
+    const gst = parseFloat(calcGst);
+
+    if (sp > 0 && gst >= 0) {
+      const base = sp / (1 + gst / 100);
+      setCalculatedBasePrice(base.toFixed(2));
+    } else {
+      setCalculatedBasePrice(null);
+    }
+  }, [calcSellingPrice, calcGst]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -41,72 +61,51 @@ const ItemManager: React.FC<Props> = ({ items, onItemsUpdate }) => {
   }, [isFormOpen]);
 
   const resetForm = () => {
-    setFormData({
-      name: '', weight: '', weightUnit: 'g', price: '', mrp: '',
-      isWeightless: true, hsnCode: '', gstRate: ''
-    });
+    setFormData({ name: '', weight: '', weightUnit: 'g', price: '', mrp: '', isWeightless: true, hsnCode: '', gstRate: '' });
     setEditingItem(null);
     setIsFormOpen(false);
+    // Reset calculator state
+    setCalcSellingPrice('');
+    setCalcGst('');
+    setCalculatedBasePrice(null);
   };
 
   const handleOpenForm = (item: ItemVariant | null = null) => {
     if (item) {
       setEditingItem(item);
       setFormData({
-        name: item.name,
-        weight: item.weight ? item.weight.toString() : '',
-        weightUnit: item.weightUnit,
-        price: item.price.toString(),
-        mrp: item.mrp ? item.mrp.toString() : '',
-        isWeightless: !item.weight,
-        hsnCode: item.hsnCode || '',
-        gstRate: item.gstRate ? item.gstRate.toString() : ''
+        name: item.name, weight: item.weight ? item.weight.toString() : '', weightUnit: item.weightUnit,
+        price: item.price.toString(), mrp: item.mrp ? item.mrp.toString() : '', isWeightless: !item.weight,
+        hsnCode: item.hsnCode || '', gstRate: item.gstRate ? item.gstRate.toString() : ''
       });
     } else {
       setEditingItem(null);
-      setFormData({
-        name: '', weight: '', weightUnit: 'g', price: '', mrp: '',
-        isWeightless: true, hsnCode: '', gstRate: ''
-      });
+      setFormData({ name: '', weight: '', weightUnit: 'g', price: '', mrp: '', isWeightless: true, hsnCode: '', gstRate: '' });
     }
     setIsFormOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!formData.name || !formData.price) {
       alert('Please fill all required fields: Name and Rate.');
       return;
     }
-
-    // --- CORRECTED LOGIC FOR OPTIONAL MRP ---
     const mrpValue = formData.mrp.trim() === '' ? undefined : parseFloat(formData.mrp);
-
     const itemData: Omit<ItemVariant, 'id'> = {
-      name: formData.name.trim(),
-      price: parseFloat(formData.price), // Saving RATE as price
-      mrp: mrpValue, // Correctly handle optional MRP
-      hsnCode: formData.hsnCode.trim(),
-      gstRate: parseFloat(formData.gstRate) || 0,
-      weightUnit: formData.isWeightless ? 'pieces' : formData.weightUnit,
-      ...(!formData.isWeightless && { weight: parseFloat(formData.weight) })
+      name: formData.name.trim(), price: parseFloat(formData.price), mrp: mrpValue, hsnCode: formData.hsnCode.trim(), gstRate: parseFloat(formData.gstRate) || 0,
+      weightUnit: formData.isWeightless ? 'pieces' : formData.weightUnit, ...(!formData.isWeightless && { weight: parseFloat(formData.weight) })
     };
-
     try {
-      if (editingItem) {
-        await updateDoc(doc(db, "items", editingItem.id), itemData as { [x: string]: any });
-      } else {
-        await addDoc(collection(db, "items"), itemData);
-      }
-      onItemsUpdate();
-      resetForm();
+      if (editingItem) { await updateDoc(doc(db, "items", editingItem.id), itemData as { [x: string]: any }); }
+      else { await addDoc(collection(db, "items"), itemData); }
+      onItemsUpdate(); resetForm();
     } catch (error) { console.error("Error writing document: ", error); }
   };
   
   const handleDelete = async (itemId: string) => {
     if (confirm('Are you sure you want to delete this item?')) {
-      try { await deleteDoc(doc(db, "items", itemId)); onItemsUpdate(); } 
+      try { await deleteDoc(doc(db, "items", itemId)); onItemsUpdate(); }
       catch (error) { console.error("Error deleting document: ", error); }
     }
   };
@@ -125,38 +124,59 @@ const ItemManager: React.FC<Props> = ({ items, onItemsUpdate }) => {
     <div className="space-y-6">
       {isFormOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center p-4">
-          <div ref={formRef} className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b"><div className="flex justify-between items-center"><h3 className="text-xl font-semibold text-gray-800">{editingItem ? 'Edit Item' : 'Add New Item'}</h3><button onClick={resetForm} className="text-gray-400 hover:text-gray-600"><X /></button></div></div>
-            <form onSubmit={handleSubmit}>
-              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="md:col-span-2"><label className={labelStyle}>Item Name</label><input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={inputStyle} required /></div>
-                
-                <div><label className={labelStyle}>Rate (excl. GST) (₹)</label><input type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className={inputStyle} step="0.01" required/></div>
-                <div><label className={labelStyle}>MRP (Optional) (₹)</label><input type="number" value={formData.mrp} onChange={e => setFormData({...formData, mrp: e.target.value})} className={inputStyle} step="0.01" /></div>
-                <div><label className={labelStyle}>HSN/SAC Code</label><input type="text" value={formData.hsnCode} onChange={(e) => setFormData({ ...formData, hsnCode: e.target.value })} className={inputStyle} /></div>
-                <div><label className={labelStyle}>GST Rate (%)</label><input type="number" value={formData.gstRate} onChange={e => setFormData({...formData, gstRate: e.target.value})} className={inputStyle} step="0.01" /></div>
-                
-                <div className="md:col-span-2 flex items-center space-x-6">
-                  <label className="flex items-center gap-2"><input type="radio" name="itemType" checked={formData.isWeightless} onChange={() => setFormData({ ...formData, isWeightless: true, weightUnit: 'pieces' })} /> Packet/Piece</label>
-                  <label className="flex items-center gap-2"><input type="radio" name="itemType" checked={!formData.isWeightless} onChange={() => setFormData({ ...formData, isWeightless: false, weightUnit: 'g' })} /> Weighted</label>
-                </div>
-                {!formData.isWeightless && (
-                  <div className="md:col-span-2">
-                    <label className={labelStyle}>Weight</label>
-                    <div className="grid grid-cols-4 gap-2">
-                      <input type="number" value={formData.weight} onChange={e => setFormData({ ...formData, weight: e.target.value })} className={`${inputStyle} col-span-3`} step="0.01" required />
-                      <select value={formData.weightUnit} onChange={e => setFormData({ ...formData, weightUnit: e.target.value })} className={`${inputStyle} col-span-1`}>
-                        <option value="g">g</option><option value="kg">kg</option><option value="ml">ml</option><option value="l">l</option>
-                      </select>
+          <div className="flex items-start gap-6" ref={formRef}>
+            {/* Main "Add Item" Form */}
+            <div className="bg-white rounded-lg shadow-2xl w-full max-w-xl">
+              <div className="p-6 border-b"><div className="flex justify-between items-center"><h3 className="text-xl font-semibold text-gray-800">{editingItem ? 'Edit Item' : 'Add New Item'}</h3><button onClick={resetForm} className="text-gray-400 hover:text-gray-600"><X /></button></div></div>
+              <form onSubmit={handleSubmit}>
+                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2"><label className={labelStyle}>Item Name</label><input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={inputStyle} required /></div>
+                  <div><label className={labelStyle}>Rate (excl. GST) (₹)</label><input type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className={inputStyle} step="0.01" required placeholder="Enter base price here"/></div>
+                  <div><label className={labelStyle}>MRP (Optional) (₹)</label><input type="number" value={formData.mrp} onChange={e => setFormData({...formData, mrp: e.target.value})} className={inputStyle} step="0.01" /></div>
+                  <div><label className={labelStyle}>HSN/SAC Code</label><input type="text" value={formData.hsnCode} onChange={(e) => setFormData({ ...formData, hsnCode: e.target.value })} className={inputStyle} /></div>
+                  <div><label className={labelStyle}>GST Rate (%)</label><input type="number" value={formData.gstRate} onChange={e => setFormData({...formData, gstRate: e.target.value})} className={inputStyle} step="0.01" /></div>
+                  <div className="md:col-span-2 flex items-center space-x-6"><label className="flex items-center gap-2"><input type="radio" name="itemType" checked={formData.isWeightless} onChange={() => setFormData({ ...formData, isWeightless: true, weightUnit: 'pieces' })} /> Packet/Piece</label><label className="flex items-center gap-2"><input type="radio" name="itemType" checked={!formData.isWeightless} onChange={() => setFormData({ ...formData, isWeightless: false, weightUnit: 'g' })} /> Weighted</label></div>
+                  {!formData.isWeightless && (
+                    <div className="md:col-span-2">
+                      <label className={labelStyle}>Weight</label>
+                      <div className="grid grid-cols-4 gap-2">
+                        <input type="number" value={formData.weight} onChange={e => setFormData({ ...formData, weight: e.target.value })} className={`${inputStyle} col-span-3`} step="0.01" required /><select value={formData.weightUnit} onChange={e => setFormData({ ...formData, weightUnit: e.target.value })} className={`${inputStyle} col-span-1`}><option value="g">g</option><option value="kg">kg</option><option value="ml">ml</option><option value="l">l</option></select>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
+                <div className="p-6 bg-gray-50 border-t flex justify-end gap-4">
+                  <button type="button" onClick={resetForm} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300">Cancel</button>
+                  <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"><Save className="h-4 w-4" /> {editingItem ? 'Update' : 'Save'}</button>
+                </div>
+              </form>
+            </div>
+
+            {/* Side Calculator Panel */}
+            <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-xs">
+              <div className="flex items-center gap-2 mb-6">
+                <Calculator className="h-6 w-6 text-blue-600"/>
+                <h3 className="text-lg font-semibold text-gray-800">Base Price Calculator</h3>
               </div>
-              <div className="p-6 bg-gray-50 border-t flex justify-end gap-4">
-                <button type="button" onClick={resetForm} className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300">Cancel</button>
-                <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"><Save className="h-4 w-4" /> {editingItem ? 'Update' : 'Save'}</button>
+              <div className="space-y-4">
+                <div>
+                  <label className={labelStyle}>Selling Price (incl. GST)</label>
+                  <input type="number" value={calcSellingPrice} onChange={e => setCalcSellingPrice(e.target.value)} className={inputStyle} placeholder="e.g., 35" />
+                </div>
+                <div>
+                  <label className={labelStyle}>GST Rate (%)</label>
+                  <input type="number" value={calcGst} onChange={e => setCalcGst(e.target.value)} className={inputStyle} placeholder="e.g., 10" />
+                </div>
               </div>
-            </form>
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-600">Calculated Base Price:</p>
+                <p className="text-3xl font-bold text-gray-800 mt-1">
+                  {calculatedBasePrice ? `₹${calculatedBasePrice}` : '₹--.--'}
+                </p>
+                <p className="text-xs text-gray-500 mt-2">Enter this value in the "Rate" field on the left.</p>
+              </div>
+            </div>
+
           </div>
         </div>
       )}

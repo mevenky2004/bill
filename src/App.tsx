@@ -1,3 +1,5 @@
+// src/App.tsx
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Package, Receipt, Plus, Users, Archive, ArrowLeft, Printer, ChevronDown } from 'lucide-react';
 import ItemManager from './components/ItemManager.tsx';
@@ -75,8 +77,8 @@ function App() {
   const handleAddToBill = (item: ItemVariant, quantity: number) => {
     setCurrentBill(prevBill => {
       const existingIdx = prevBill.findIndex(i => i.id === item.id);
-      const gstRate = item.gstRate || 0;
-      const total = (item.price * quantity) * (1 + gstRate / 100);
+      // --- CORRECTED CALCULATION ---
+      const total = item.price * quantity;
 
       if (existingIdx >= 0) {
         return prevBill.map((billItem, index) => 
@@ -96,8 +98,8 @@ function App() {
     if (newQuantity <= 0) { handleRemoveFromBill(itemId); return; }
     setCurrentBill(currentBill.map(item => {
       if (item.id === itemId) {
-        const gstRate = item.gstRate || 0;
-        const newTotal = (item.price * newQuantity) * (1 + gstRate / 100);
+        // --- CORRECTED CALCULATION ---
+        const newTotal = item.price * newQuantity;
         return { ...item, quantity: newQuantity, total: newTotal };
       }
       return item;
