@@ -1,3 +1,5 @@
+// src/components/BillingInterface.tsx
+
 import React, { useState, useMemo } from 'react';
 import { Plus, Minus, Trash2, ChevronsUpDown, X, ShoppingCart, UserPlus, User, Phone, Mail, MapPin, Briefcase } from 'lucide-react';
 import { ItemVariant, BillItem, Receiver, NewReceiver } from '../App';
@@ -211,19 +213,7 @@ const BillingInterface: React.FC<Props> = ({
                 </div>
               ))}
             </div>
-            <div className="p-4 bg-gray-50 border-t rounded-b-lg mt-auto">
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between"><span>Subtotal:</span><span>₹{billTotals.subtotal.toFixed(2)}</span></div>
-                <div className="flex justify-between"><span>CGST+SGST:</span><span>₹{(billTotals.cgst + billTotals.sgst).toFixed(2)}</span></div>
-                <div className="flex justify-between items-center text-xl font-bold border-t pt-2 mt-2"><span>Total:</span><span>₹{billTotals.total.toFixed(2)}</span></div>
-              </div>
-              <div className="flex items-center justify-center gap-4 pt-4">
-                <span className={`font-medium ${paymentStatus === 'unpaid' ? 'text-blue-600' : 'text-gray-500'}`}>Unpaid</span>
-                <label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" checked={paymentStatus === 'paid'} onChange={() => setPaymentStatus(prev => prev === 'paid' ? 'unpaid' : 'paid')} className="sr-only peer" /><div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div></label>
-                <span className={`font-medium ${paymentStatus === 'paid' ? 'text-green-600' : 'text-gray-500'}`}>Paid</span>
-              </div>
-              <button onClick={handleGenerateInvoice} className="w-full mt-4 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold text-lg">Generate Invoice</button>
-            </div>
+            {/* FIX: The entire totals and "Generate Invoice" button section has been removed */}
           </div>
         )}
       </div>
