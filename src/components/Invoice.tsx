@@ -36,19 +36,14 @@ const Invoice: React.FC<Props> = ({ bill }) => {
   const shippingAddressText = formatAddress(bill.receiver?.shippingAddress);
 
   const finalTotal = parseFloat(bill.subtotal.toFixed(2)) + parseFloat(bill.cgst.toFixed(2)) + parseFloat(bill.sgst.toFixed(2));
-  
-  const totalMRP = bill.items.reduce((acc, item) => {
-    const mrp = item.mrp || 0;
-    return acc + (mrp * item.quantity);
-  }, 0);
 
   return (
-    // FIX: Reduced overall padding and font size for printing
     <div className="max-w-4xl mx-auto bg-white p-8 border print:border-none print:shadow-none print:p-2 font-sans text-sm print:text-xs print:my-0">
       <div className="flex justify-center items-start mb-2 print:mb-1">
           <h1 className="text-2xl font-bold text-center">GST INVOICE</h1>
       </div>
 
+      {/* Header and Address sections */}
       <div className={`grid ${bill.receiver ? 'grid-cols-2' : 'grid-cols-1'} border`}>
         <div className={`p-2 print:p-1 ${bill.receiver ? 'border-r' : ''}`}>
           <p className="font-bold text-base print:text-sm">{shopAddress.name}</p>
@@ -64,7 +59,6 @@ const Invoice: React.FC<Props> = ({ bill }) => {
           </div>
         )}
       </div>
-
       {bill.receiver && (
         <div className="grid grid-cols-2 border border-t-0">
           <div className="p-2 print:p-1 border-r">
@@ -82,6 +76,7 @@ const Invoice: React.FC<Props> = ({ bill }) => {
         </div>
       )}
 
+      {/* Table Section */}
       <table className="w-full border-x border-b text-center">
         <thead className="bg-gray-50 align-top">
           <tr className="border-b">
@@ -112,7 +107,6 @@ const Invoice: React.FC<Props> = ({ bill }) => {
             const cgstSgstAmount = gstAmount / 2;
             const total = parseFloat(basicValue.toFixed(2)) + parseFloat(cgstSgstAmount.toFixed(2)) + parseFloat(cgstSgstAmount.toFixed(2));
             return (
-              // FIX: Reduced vertical padding on each item row for printing
               <tr key={item.id + index} className="border-b">
                 <td className="p-1 print:py-0.5 print:px-1 border-r">{index + 1}</td>
                 <td className="p-1 print:py-0.5 print:px-1 border-r text-left">{item.name} {item.weight ? `(${item.weight}${item.weightUnit})` : ''}</td>
@@ -129,26 +123,26 @@ const Invoice: React.FC<Props> = ({ bill }) => {
             );
           })}
         </tbody>
+        {/* FIX: This footer now only contains the totals you requested */}
         <tfoot className="print:table-row-group">
           <tr className="font-semibold border-t-2">
-            <td className="p-1 print:py-0.5 print:px-1 border-r text-right" colSpan={4}>Total</td>
-            <td className="p-1 print:py-0.5 print:px-1 border-r text-right">₹{formatCurrency(totalMRP)}</td>
-            <td className="p-1 print:py-0.5 print:px-1 border-r text-right">₹{formatCurrency(bill.subtotal)}</td>
-            <td className="p-1 print:py-0.5 print:px-1 border-r"></td>
+            <td className="p-1 print:py-0.5 print:px-1 border-r text-right" colSpan={6}>Total</td>
+            <td className="p-1 print:py-0.5 print:px-1 border-r"></td> {/* Empty cell for CGST Rate */}
             <td className="p-1 print:py-0.5 print:px-1 border-r text-right">₹{formatCurrency(bill.cgst)}</td>
-            <td className="p-1 print:py-0.5 print:px-1 border-r"></td>
+            <td className="p-1 print:py-0.5 print:px-1 border-r"></td> {/* Empty cell for SGST Rate */}
             <td className="p-1 print:py-0.5 print:px-1 border-r text-right">₹{formatCurrency(bill.sgst)}</td>
             <td className="p-1 print:py-0.5 print:px-1 text-right font-bold">₹{formatCurrency(finalTotal)}</td>
           </tr>
         </tfoot>
       </table>
 
+      {/* Final Totals Section Below Table */}
       <div className="flex justify-between p-2 print:p-1">
         <div>
           <p className="font-bold">Total (in words):</p>
           <p>---</p>
         </div>
-        <div className="w-1/3 text-sm">
+        <div className="w-1/3 text-sm text-right">
             <div className="flex justify-between font-bold border-t mt-1 pt-1">
                 <span>GRAND TOTAL:</span>
                 <span>₹{formatCurrency(finalTotal)}</span>
