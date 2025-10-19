@@ -26,9 +26,9 @@ const formatAddress = (addr: Address | undefined): string => {
 const Invoice: React.FC<Props> = ({ bill }) => {
 
   const shopAddress = {
-    name: "KS MARKETINS",
-    address: "Suggappa Layout\nBalagi Recedency\nSecond Cross\nYalahanka Bengalore",
-    gstin: "",
+    name: "NATUREE NECTAR FOOD PRODUCTS",
+    address: "Floor No.: FIRST FLOOR\nBuilding No./Flat No.: NO.172\n Name Of Premises/Building: SHIVAPRIYA NILAYA\nRoad/Street: 17TH B CROSS ROAD\nLocality/Sub Locality: Prashanth Nagar\nCity/Town/Village: Bengaluru\n District: Bengaluru Urban\nState: Karnataka\nPIN code :560057",
+    gstin: " 29COEPN6277E1ZK",
   };
   
   const receiverName = bill.receiver?.displayName || 'N/A';
