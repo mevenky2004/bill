@@ -10,17 +10,17 @@ interface Props {
 const formatCurrency = (num: number) => num.toFixed(2);
 
 const formatAddress = (addr: Address | undefined): string => {
-    if (!addr) return '';
-    const parts = [
-        addr.attention,
-        addr.addressLine1,
-        addr.addressLine2,
-        `${addr.city || ''} ${addr.state || ''} ${addr.pinCode || ''}`.trim(),
-        addr.countryRegion,
-        addr.phone ? `Ph: ${addr.phone}` : '',
-        addr.faxNumber ? `Fax: ${addr.faxNumber}` : ''
-    ];
-    return parts.filter(part => part).join('\n');
+  if (!addr) return '';
+  const parts = [
+    addr.attention,
+    addr.addressLine1,
+    addr.addressLine2,
+    `${addr.city || ''} ${addr.state || ''} ${addr.pinCode || ''}`.trim(),
+    addr.countryRegion,
+    addr.phone ? `Ph: ${addr.phone}` : '',
+    addr.faxNumber ? `Fax: ${addr.faxNumber}` : ''
+  ];
+  return parts.filter(part => part).join('\n');
 };
 
 const Invoice: React.FC<Props> = ({ bill }) => {
@@ -41,7 +41,7 @@ const Invoice: React.FC<Props> = ({ bill }) => {
   return (
     <div className="max-w-4xl mx-auto bg-white p-8 border print:border-none print:shadow-none print:p-2 font-sans text-sm print:text-xs print:my-0">
       <div className="flex justify-center items-start mb-2 print:mb-1">
-          <h1 className="text-2xl font-bold text-center">GST INVOICE</h1>
+        <h1 className="text-2xl font-bold text-center">GST INVOICE</h1>
       </div>
 
       {/* Header and Address sections */}
@@ -60,6 +60,7 @@ const Invoice: React.FC<Props> = ({ bill }) => {
           </div>
         )}
       </div>
+
       {bill.receiver && (
         <div className="grid grid-cols-2 border border-t-0">
           <div className="p-2 print:p-1 border-r">
@@ -114,7 +115,10 @@ const Invoice: React.FC<Props> = ({ bill }) => {
                 <td className="p-1 print:py-0.5 print:px-1 border-r">{item.hsnCode || ''}</td>
                 <td className="p-1 print:py-0.5 print:px-1 border-r">{item.quantity}</td>
                 <td className="p-1 print:py-0.5 print:px-1 border-r text-right">₹{item.mrp ? formatCurrency(item.mrp) : 'N/A'}</td>
-                <td className="p-1 print:py-0.5 print:px-1 border-r text-right">₹{formatCurrency(item.price * item.quantity)}</td>
+
+                {/* ✅ Fixed Rate column (now shows base price only) */}
+                <td className="p-1 print:py-0.5 print:px-1 border-r text-right">₹{formatCurrency(item.price)}</td>
+
                 <td className="p-1 print:py-0.5 print:px-1 border-r">{cgstSgstRate.toFixed(2)}%</td>
                 <td className="p-1 print:py-0.5 print:px-1 border-r text-right">₹{formatCurrency(cgstSgstAmount)}</td>
                 <td className="p-1 print:py-0.5 print:px-1 border-r">{cgstSgstRate.toFixed(2)}%</td>
@@ -133,27 +137,26 @@ const Invoice: React.FC<Props> = ({ bill }) => {
           <p>---</p>
         </div>
         <div className="w-1/3 text-sm text-right">
-            <div className="flex justify-between">
-                <span className="font-semibold">Sub Total:</span>
-                <span>₹{formatCurrency(bill.subtotal)}</span>
-            </div>
-            <div className="flex justify-between">
-                <span className="font-semibold">Total CGST:</span>
-                <span>₹{formatCurrency(bill.cgst)}</span>
-            </div>
-            <div className="flex justify-between">
-                <span className="font-semibold">Total SGST:</span>
-                <span>₹{formatCurrency(bill.sgst)}</span>
-            </div>
-            <div className="flex justify-between font-bold border-t mt-1 pt-1">
-                <span>GRAND TOTAL:</span>
-                <span>₹{formatCurrency(finalTotal)}</span>
-            </div>
+          <div className="flex justify-between">
+            <span className="font-semibold">Sub Total:</span>
+            <span>₹{formatCurrency(bill.subtotal)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="font-semibold">Total CGST:</span>
+            <span>₹{formatCurrency(bill.cgst)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="font-semibold">Total SGST:</span>
+            <span>₹{formatCurrency(bill.sgst)}</span>
+          </div>
+          <div className="flex justify-between font-bold border-t mt-1 pt-1">
+            <span>GRAND TOTAL:</span>
+            <span>₹{formatCurrency(finalTotal)}</span>
+          </div>
         </div>
       </div>
-      
-      {/* FIX: The Bank Details and T&C section has been removed */}
 
+      {/* FIX: The Bank Details and T&C section has been removed */}
       <footer className="mt-4 text-center text-gray-500 text-xs">
         <p>THANK YOU</p>
       </footer>
